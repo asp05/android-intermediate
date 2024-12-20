@@ -2,11 +2,14 @@ package com.sugara.submissionandroidintermediate.view.home
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.sugara.submissionandroidintermediate.R
+import com.sugara.submissionandroidintermediate.data.model.Story
 import com.sugara.submissionandroidintermediate.databinding.ActivityAddStoryBinding
 import com.sugara.submissionandroidintermediate.databinding.ActivityHomeDetailBinding
+import com.sugara.submissionandroidintermediate.di.ResultState
 import com.sugara.submissionandroidintermediate.view.ViewModelFactory
 import com.sugara.submissionandroidintermediate.view.addStory.AddStoryViewModel
 
@@ -29,25 +32,32 @@ class HomeDetailActivity : AppCompatActivity() {
         val id = intent.getStringExtra(EXTRA_ID) ?: ""
         homeViewModel = obtainViewModel(this)
 
-        homeViewModel.getDetailStory(id)
 
-        homeViewModel.detailStory.observe(this) { detailStory ->
-            binding.tvTitle.setText(detailStory?.name ?: "")
-            binding.tvDesc.setText(detailStory?.description ?: "")
-            Glide.with(this)
-                .load(detailStory?.photoUrl)
-                .into(binding.ivPicture)
-        }
 
-        homeViewModel.isLoading.observe(this) { isLoading ->
-            //set text button register to spinner and disable button
-            if (isLoading) {
-                showLoadingDialog()
-
-            } else {
-                //set text button register to register and enable button
-                dismissLoadingDialog()
-
+        homeViewModel.getDetailStory(id).observe(this) { result ->
+            when (result) {
+                is ResultState.Loading -> {
+                    showLoadingDialog()
+                }
+                is ResultState.Success -> {
+                    dismissLoadingDialog()
+                    val story = result.data as Story
+                    binding.tvTitle.text = story.name
+                    binding.tvDesc.text = story.description
+                    Glide.with(this)
+                        .load(story.photoUrl)
+                        .into(binding.ivPicture)
+                }
+                is ResultState.Error -> {
+                    dismissLoadingDialog()
+                    AlertDialog.Builder(this).apply {
+                        setTitle("Error")
+                        setMessage(result.error)
+                        setPositiveButton("OK") { dialog, _ ->
+                            dialog.dismiss()
+                        }
+                    }.show()
+                }
             }
         }
     }

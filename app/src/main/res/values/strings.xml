@@ -17,4 +17,6 @@
     <string name="gallery">Gallery</string>
     <string name="camera">Camera</string>
     <string name="simpan">Simpan</string>
+    <string name="title_activity_maps">MapsActivity</string>
+    <string name="muat_ulang">Muat Ulang</string>
 </resources>

@@ -8,6 +8,7 @@ import com.sugara.submissionandroidintermediate.data.UserRepository
 import com.sugara.submissionandroidintermediate.di.Injection
 import com.sugara.submissionandroidintermediate.view.addStory.AddStoryViewModel
 import com.sugara.submissionandroidintermediate.view.home.HomeViewModel
+import com.sugara.submissionandroidintermediate.view.maps.MapsViewModel
 import com.sugara.submissionandroidintermediate.view.signin.SigninViewModel
 import com.sugara.submissionandroidintermediate.view.signup.SignupViewModel
 
@@ -38,6 +39,8 @@ class ViewModelFactory private constructor(private val userRepository: UserRepos
             return MainViewModel(userRepository) as T
         }else if (modelClass.isAssignableFrom(AddStoryViewModel::class.java)) {
             return AddStoryViewModel(userRepository) as T
+        }else if (modelClass.isAssignableFrom(MapsViewModel::class.java)) {
+            return MapsViewModel(userRepository) as T
         }
 
         throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")

@@ -14,8 +14,10 @@ import android.view.WindowManager
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.ViewModelProvider
 import com.sugara.submissionandroidintermediate.R
+import com.sugara.submissionandroidintermediate.data.model.LoginResult
 import com.sugara.submissionandroidintermediate.data.model.UserModel
 import com.sugara.submissionandroidintermediate.databinding.ActivitySigninBinding
+import com.sugara.submissionandroidintermediate.di.ResultState
 import com.sugara.submissionandroidintermediate.view.MainActivity
 import com.sugara.submissionandroidintermediate.view.ViewModelFactory
 import com.sugara.submissionandroidintermediate.view.home.HomeActivity
@@ -26,7 +28,6 @@ class SigninActivity : AppCompatActivity() {
     private lateinit var signinViewModel: SigninViewModel
     private lateinit var binding: ActivitySigninBinding
     private lateinit var loadingDialog: android.app.AlertDialog
-    private lateinit var login: UserModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,49 +51,45 @@ class SigninActivity : AppCompatActivity() {
             } else if(password.isEmpty()){
                 binding.passwordEditText.error = "Password tidak boleh kosong"
             } else {
-                login = UserModel(
-                    email = email,
-                    password = password
-                )
-                signinViewModel.login(login)
-            }
-
-        }
-
-        signinViewModel.isLoading.observe(this) { isLoading ->
-            if (isLoading) {
-                showLoadingDialog()
-                binding.loginButton.text = "Loading..."
-                binding.loginButton.isEnabled = false
-            } else {
-                dismissLoadingDialog()
-                //set text button register to register and enable button
-                binding.loginButton.text = "Login"
-                binding.loginButton.isEnabled = true
-            }
-        }
-
-        signinViewModel.response.observe(this) { response ->
-            val builder = android.app.AlertDialog.Builder(this)
-            builder.setMessage(response.message)
-            builder.setCancelable(false)
-
-            if (response.isSuccess) {
-                builder.setTitle("Success")
-                builder.setPositiveButton("OK") { dialog, _ ->
-                    startActivity(Intent(this, HomeActivity::class.java))
-                    finish()
-                }
-            } else {
-                builder.setTitle("Error")
-                builder.setPositiveButton("OK") { dialog, _ ->
-                    dialog.dismiss()
+                signinViewModel.login(email = email, password = password).observe(this) { result ->
+                    when (result) {
+                        is ResultState.Loading -> {
+                            showLoadingDialog()
+                        }
+                        is ResultState.Success -> {
+                            dismissLoadingDialog()
+                            AlertDialog.Builder(this).apply {
+                                setTitle("Yeah!")
+                                setMessage(result.data.message)
+                                signinViewModel.saveSession(result.data.loginResult as LoginResult)
+                                setPositiveButton("Lanjut") { _, _ ->
+                                    val intent = Intent(context, MainActivity::class.java)
+                                    intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+                                    startActivity(intent)
+                                    finish()
+                                }
+                                create()
+                                show()
+                            }
+                        }
+                        is ResultState.Error -> {
+                            dismissLoadingDialog()
+                            AlertDialog.Builder(this).apply {
+                                setTitle("Error")
+                                setMessage(result.error)
+                                setPositiveButton("OK") { dialog, _ ->
+                                    dialog.dismiss()
+                                }
+                                create()
+                                show()
+                            }
+                        }
+                    }
                 }
             }
 
-            val alertDialog = builder.create()
-            alertDialog.show()
         }
+
     }
 
     private fun obtainViewModel(activity: AppCompatActivity): SigninViewModel {

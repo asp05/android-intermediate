@@ -17,42 +17,46 @@ import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Part
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface ApiService {
 
     @FormUrlEncoded
     @POST("register")
-    fun register(
+    suspend fun register(
         @Field("name") fullname: String,
         @Field("email") email: String,
         @Field("password") password: String,
-    ): Call<RegisterModel>
+    ): RegisterModel
 
     @FormUrlEncoded
     @POST("login")
-    fun login(
+    suspend fun login(
         @Field("email") email: String,
         @Field("password") password: String,
-    ): Call<LoginModel>
+    ): LoginModel
 
     @GET("stories")
-    fun stories(
-        @Header("Authorization") token: String,
-    ): Call<StoryModel>
+    suspend fun stories(
+        @Query("page") page : Int = 1,
+        @Query("size") size : Int = 10
+    ): StoryModel
 
     @Multipart
     @POST("stories")
-    fun addStory(
+    suspend fun addStory(
         @Part("description") description: RequestBody,
-        @Part photo: MultipartBody.Part?,
-        @Header("Authorization") token: String,
-    ): Call<AddStoryModel>
+        @Part photo: MultipartBody.Part?
+    ): AddStoryModel
 
     @GET("stories/{id}")
-    fun storyDetail(
+    suspend fun storyDetail(
         @Path("id") id: String,
-        @Header("Authorization") token: String,
-    ): Call<DetailStoryResponse>
+    ): DetailStoryResponse
 
+    @GET("stories")
+    suspend fun getStoriesLocation(
+        @Query("location") location : Int = 1,
+    ): StoryModel
 
 }

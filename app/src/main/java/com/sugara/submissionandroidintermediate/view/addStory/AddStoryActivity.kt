@@ -7,10 +7,12 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.ViewModelProvider
 import com.sugara.submissionandroidintermediate.R
 import com.sugara.submissionandroidintermediate.databinding.ActivityAddStoryBinding
 import com.sugara.submissionandroidintermediate.databinding.ActivityHomeBinding
+import com.sugara.submissionandroidintermediate.di.ResultState
 import com.sugara.submissionandroidintermediate.utils.getImageUri
 import com.sugara.submissionandroidintermediate.view.ViewModelFactory
 import com.sugara.submissionandroidintermediate.view.home.HomeActivity
@@ -39,52 +41,43 @@ class AddStoryActivity : AppCompatActivity() {
         addStoryViewModel = obtainViewModel(this)
 
         binding.btnSave.setOnClickListener {
+
             val desc = binding.etDesc.text.toString()
             if (currentImageUri == null) {
                 Toast.makeText(this, "Gambar belum terpilih", Toast.LENGTH_SHORT).show()
             } else if (desc.isEmpty()) {
                 Toast.makeText(this, "Deskripsi belum diisi", Toast.LENGTH_SHORT).show()
             } else {
-                // save to database
-                addStoryViewModel.addStory(desc, currentImageUri!!, this)
-            }
-        }
-
-        addStoryViewModel.isLoading.observe(this) { isLoading ->
-            //set text button register to spinner and disable button
-            if (isLoading) {
                 showLoadingDialog()
-                binding.btnSave.text = "Loading..."
-                binding.btnSave.isEnabled = false
-            } else {
-                //set text button register to register and enable button
-                dismissLoadingDialog()
-                binding.btnSave.text = "Register"
-                binding.btnSave.isEnabled = true
+                // save to database
+                addStoryViewModel.addStory(desc, currentImageUri!!, this).observe(this) { result ->
+                    when (result) {
+                        is ResultState.Loading -> {
+                            showLoadingDialog()
+                        }
+                        is ResultState.Success -> {
+                            dismissLoadingDialog()
+                            AlertDialog.Builder(this).apply {
+                                setTitle("Yeah!")
+                                setMessage("Story berhasil ditambahkan")
+                                setPositiveButton("OK") { dialog, _ ->
+                                    dialog.dismiss()
+                                    val intent = Intent(this@AddStoryActivity, HomeActivity::class.java)
+                                    startActivity(intent)
+                                    finish()
+                                }
+                            }.show()
+                        }
+                        is ResultState.Error -> {
+                            dismissLoadingDialog()
+                            Toast.makeText(this, result.error, Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
             }
         }
 
-        addStoryViewModel.response.observe(this) { response ->
-            val builder = android.app.AlertDialog.Builder(this)
-            builder.setMessage(response.message)
-            builder.setCancelable(false)
 
-            if (response.isSuccess) {
-                builder.setTitle("Success")
-                builder.setPositiveButton("OK") { dialog, _ ->
-                    val intent = Intent(this, HomeActivity::class.java)
-                    startActivity(intent)
-                }
-            } else {
-                builder.setTitle("Error")
-                builder.setPositiveButton("OK") { dialog, _ ->
-                    dialog.dismiss()
-                }
-            }
-
-            val alertDialog = builder.create()
-            alertDialog.show()
-        }
 
     }
 
@@ -131,6 +124,8 @@ class AddStoryActivity : AppCompatActivity() {
     }
 
     private fun showLoadingDialog() {
+        binding.btnSave.isEnabled = false
+        binding.btnSave.text = "Loading..."
         val builder = android.app.AlertDialog.Builder(this)
         val inflater = layoutInflater
         val dialogView = inflater.inflate(R.layout.dialog_loading, null)
@@ -141,6 +136,8 @@ class AddStoryActivity : AppCompatActivity() {
     }
 
     private fun dismissLoadingDialog() {
+        binding.btnSave.isEnabled = true
+        binding.btnSave.text = "Simpan"
         if (::loadingDialog.isInitialized && loadingDialog.isShowing) {
             loadingDialog.dismiss()
         }

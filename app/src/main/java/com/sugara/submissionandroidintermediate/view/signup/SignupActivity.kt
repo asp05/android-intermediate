@@ -16,6 +16,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.sugara.submissionandroidintermediate.R
 import com.sugara.submissionandroidintermediate.data.model.UserModel
 import com.sugara.submissionandroidintermediate.databinding.ActivitySignupBinding
+import com.sugara.submissionandroidintermediate.di.ResultState
 import com.sugara.submissionandroidintermediate.view.ViewModelFactory
 import com.sugara.submissionandroidintermediate.view.signin.SigninActivity
 
@@ -24,7 +25,6 @@ class SignupActivity : AppCompatActivity() {
     private lateinit var signUpViewModel: SignupViewModel
     private lateinit var binding: ActivitySignupBinding
     private lateinit var loadingDialog: android.app.AlertDialog
-    private lateinit var register: UserModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySignupBinding.inflate(layoutInflater)
@@ -33,7 +33,6 @@ class SignupActivity : AppCompatActivity() {
         signUpViewModel = obtainViewModel(this)
 
         setupView()
-        setupAction()
         playAnimation()
         setupPasswordValidation()
 
@@ -50,52 +49,40 @@ class SignupActivity : AppCompatActivity() {
                 binding.passwordEditText.error = "Password tidak boleh kosong"
             }  else {
 
-                register = UserModel(
-                    name = name,
-                    email = email,
-                    password = password,
-                )
-                signUpViewModel.register(register)
-
-            }
-
-        }
-
-        signUpViewModel.isLoading.observe(this) { isLoading ->
-            //set text button register to spinner and disable button
-            if (isLoading) {
-                showLoadingDialog()
-                binding.signupButton.text = "Loading..."
-                binding.signupButton.isEnabled = false
-            } else {
-                //set text button register to register and enable button
-                dismissLoadingDialog()
-                binding.signupButton.text = "Register"
-                binding.signupButton.isEnabled = true
-            }
-        }
-
-        signUpViewModel.response.observe(this) { response ->
-            val builder = android.app.AlertDialog.Builder(this)
-            builder.setMessage(response.message)
-            builder.setCancelable(false)
-
-            if (response.isSuccess) {
-                builder.setTitle("Success")
-                builder.setPositiveButton("OK") { dialog, _ ->
-                    startActivity(Intent(this, SigninActivity::class.java))
-                    finish()
+                signUpViewModel.register(name = name, email = email, password = password).observe(this) { result ->
+                    when (result) {
+                        is ResultState.Loading -> {
+                            showLoadingDialog()
+                        }
+                        is ResultState.Success -> {
+                            dismissLoadingDialog()
+                            AlertDialog.Builder(this).apply {
+                                setTitle("Yeah!")
+                                setMessage("Akun dengan $email sudah jadi nih. Yuk, login dan membaca.")
+                                setPositiveButton("Lanjut") { _, _ ->
+                                    finish()
+                                }
+                                create()
+                                show()
+                            }
+                        }
+                        is ResultState.Error -> {
+                            dismissLoadingDialog()
+                            AlertDialog.Builder(this).apply {
+                                setTitle("Error")
+                                setMessage(result.error)
+                                setPositiveButton("OK") { _, _ -> }
+                                create()
+                                show()
+                            }
+                        }
+                    }
                 }
-            } else {
-                builder.setTitle("Error")
-                builder.setPositiveButton("OK") { dialog, _ ->
-                    dialog.dismiss()
-                }
+
             }
 
-            val alertDialog = builder.create()
-            alertDialog.show()
         }
+
     }
 
     private fun obtainViewModel(activity: AppCompatActivity): SignupViewModel {
@@ -116,21 +103,6 @@ class SignupActivity : AppCompatActivity() {
         supportActionBar?.hide()
     }
 
-    private fun setupAction() {
-        binding.signupButton.setOnClickListener {
-            val email = binding.emailEditText.text.toString()
-
-            AlertDialog.Builder(this).apply {
-                setTitle("Yeah!")
-                setMessage("Akun dengan $email sudah jadi nih. Yuk, login dan membaca.")
-                setPositiveButton("Lanjut") { _, _ ->
-                    finish()
-                }
-                create()
-                show()
-            }
-        }
-    }
 
     private fun playAnimation() {
         ObjectAnimator.ofFloat(binding.imageView, View.TRANSLATION_X, -30f, 30f).apply {
