@@ -175,8 +175,10 @@ class SigninActivity : AppCompatActivity() {
                 val password = s.toString()
                 if (password.length < 8) {
                     binding.passwordEditTextLayout.error = "Password must be at least 8 characters"
+                    binding.loginButton.isEnabled = false
                 } else {
                     binding.passwordEditTextLayout.error = null
+                    binding.loginButton.isEnabled = true
                 }
             }
 
