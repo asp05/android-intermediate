@@ -6,8 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
-import androidx.lifecycle.ViewModelProvider
+import androidx.activity.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.sugara.submissionandroidintermediate.R
 import com.sugara.submissionandroidintermediate.adapter.StoryAdapter
@@ -20,15 +19,18 @@ import com.sugara.submissionandroidintermediate.view.signin.SigninActivity
 
 class HomeActivity : AppCompatActivity() {
 
-    private lateinit var homeViewModel: HomeViewModel
     private lateinit var binding: ActivityHomeBinding
+
+    private val homeViewModel by viewModels<HomeViewModel> {
+        ViewModelFactory.getInstance(this)
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityHomeBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        homeViewModel = obtainViewModel(this)
 
         homeViewModel.getSession().observe(this) { result ->
+            Log.d("HomeActivity", "onCreate session: $result")
             if (result.userId.isNullOrEmpty()) {
                 val intent = Intent(this, SigninActivity::class.java)
                 startActivity(intent)
@@ -46,11 +48,6 @@ class HomeActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-    }
-
-    private fun obtainViewModel(activity: AppCompatActivity): HomeViewModel {
-        val factory = ViewModelFactory.getInstance(activity.application)
-        return ViewModelProvider(activity, factory).get(HomeViewModel::class.java)
     }
 
 

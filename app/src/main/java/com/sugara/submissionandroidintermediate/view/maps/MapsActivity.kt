@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.ViewModelProvider
 
@@ -19,6 +20,7 @@ import com.sugara.submissionandroidintermediate.R
 import com.sugara.submissionandroidintermediate.databinding.ActivityMapsBinding
 import com.sugara.submissionandroidintermediate.di.ResultState
 import com.sugara.submissionandroidintermediate.view.ViewModelFactory
+import com.sugara.submissionandroidintermediate.view.addStory.AddStoryViewModel
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
@@ -27,11 +29,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private val latLngBounds = LatLngBounds.Builder()
 
     private lateinit var loadingDialog: android.app.AlertDialog
-    private lateinit var mapViewModel: MapsViewModel
 
-    private fun obtainViewModel(activity: AppCompatActivity): MapsViewModel {
-        val factory = ViewModelFactory.getInstance(activity.application)
-        return ViewModelProvider(activity, factory).get(MapsViewModel::class.java)
+    private val mapViewModel by viewModels<MapsViewModel> {
+        ViewModelFactory.getInstance(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,7 +45,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-        mapViewModel = obtainViewModel(this)
 
         mapViewModel.getStories().observe(this) { result ->
             when (result) {

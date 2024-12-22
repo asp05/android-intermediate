@@ -11,6 +11,7 @@ import android.text.TextWatcher
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.ViewModelProvider
 import com.sugara.submissionandroidintermediate.R
@@ -19,18 +20,20 @@ import com.sugara.submissionandroidintermediate.databinding.ActivitySignupBindin
 import com.sugara.submissionandroidintermediate.di.ResultState
 import com.sugara.submissionandroidintermediate.view.ViewModelFactory
 import com.sugara.submissionandroidintermediate.view.signin.SigninActivity
+import com.sugara.submissionandroidintermediate.view.signin.SigninViewModel
 
 class SignupActivity : AppCompatActivity() {
 
-    private lateinit var signUpViewModel: SignupViewModel
     private lateinit var binding: ActivitySignupBinding
     private lateinit var loadingDialog: android.app.AlertDialog
+
+    private val signUpViewModel by viewModels<SignupViewModel> {
+        ViewModelFactory.getInstance(this)
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySignupBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        signUpViewModel = obtainViewModel(this)
 
         setupView()
         playAnimation()
@@ -85,10 +88,6 @@ class SignupActivity : AppCompatActivity() {
 
     }
 
-    private fun obtainViewModel(activity: AppCompatActivity): SignupViewModel {
-        val factory = ViewModelFactory.getInstance(activity.application)
-        return ViewModelProvider(activity, factory).get(SignupViewModel::class.java)
-    }
 
     private fun setupView() {
         @Suppress("DEPRECATION")
@@ -152,8 +151,10 @@ class SignupActivity : AppCompatActivity() {
                 val password = s.toString()
                 if (password.length < 8) {
                     binding.passwordEditTextLayout.error = "Password must be at least 8 characters"
+                    binding.signupButton.isEnabled = false
                 } else {
                     binding.passwordEditTextLayout.error = null
+                    binding.signupButton.isEnabled = true
                 }
             }
 

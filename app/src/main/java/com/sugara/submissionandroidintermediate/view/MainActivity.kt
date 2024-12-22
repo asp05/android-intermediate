@@ -10,6 +10,7 @@ import android.util.Log
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
+import androidx.activity.viewModels
 import androidx.lifecycle.ViewModelProvider
 import com.sugara.submissionandroidintermediate.databinding.ActivityMainBinding
 import com.sugara.submissionandroidintermediate.view.home.HomeActivity
@@ -19,7 +20,10 @@ import com.sugara.submissionandroidintermediate.view.signup.SignupViewModel
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
-    private lateinit var mainViewModel: MainViewModel
+
+    private val mainViewModel by viewModels<MainViewModel> {
+        ViewModelFactory.getInstance(this)
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -29,7 +33,6 @@ class MainActivity : AppCompatActivity() {
         setupAction()
         playAnimation()
 
-        mainViewModel = obtainViewModel(this)
 
         mainViewModel.getSession().observe(this) { session ->
             Log.d("MainActivity", "session kita saat ini adlah: $session")
@@ -61,11 +64,6 @@ class MainActivity : AppCompatActivity() {
         binding.signupButton.setOnClickListener {
             startActivity(Intent(this, SignupActivity::class.java))
         }
-    }
-
-    private fun obtainViewModel(activity: AppCompatActivity): MainViewModel {
-        val factory = ViewModelFactory.getInstance(activity.application)
-        return ViewModelProvider(activity, factory).get(MainViewModel::class.java)
     }
 
     private fun playAnimation() {

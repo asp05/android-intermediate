@@ -1,5 +1,6 @@
 package com.sugara.submissionandroidintermediate.data.api
 
+import android.util.Log
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -19,6 +20,7 @@ class ApiConfig {
                     .build()
                 chain.proceed(requestHeaders)
             }
+            Log.d("ApiConfig", "Token saat ini: $token")
             val client = OkHttpClient.Builder()
                 .addInterceptor(loggingInterceptor)
                 .addInterceptor(authInterceptor)

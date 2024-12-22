@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.ViewModelProvider
 import com.sugara.submissionandroidintermediate.R
@@ -22,9 +23,13 @@ import com.sugara.submissionandroidintermediate.view.signin.SigninActivity
 class AddStoryActivity : AppCompatActivity() {
 
     private lateinit var binding : ActivityAddStoryBinding
-    private lateinit var addStoryViewModel: AddStoryViewModel
     private lateinit var loadingDialog: android.app.AlertDialog
     private var currentImageUri: Uri? = null
+
+
+    private val addStoryViewModel by viewModels<AddStoryViewModel> {
+        ViewModelFactory.getInstance(this)
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityAddStoryBinding.inflate(layoutInflater)
@@ -38,7 +43,6 @@ class AddStoryActivity : AppCompatActivity() {
             startCamera()
         }
 
-        addStoryViewModel = obtainViewModel(this)
 
         binding.btnSave.setOnClickListener {
 
@@ -79,11 +83,6 @@ class AddStoryActivity : AppCompatActivity() {
 
 
 
-    }
-
-    private fun obtainViewModel(activity: AppCompatActivity): AddStoryViewModel {
-        val factory = ViewModelFactory.getInstance(activity.application)
-        return ViewModelProvider(activity, factory).get(AddStoryViewModel::class.java)
     }
 
     private fun startGallery() {

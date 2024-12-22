@@ -11,6 +11,7 @@ import android.text.TextWatcher
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.ViewModelProvider
 import com.sugara.submissionandroidintermediate.R
@@ -20,21 +21,24 @@ import com.sugara.submissionandroidintermediate.databinding.ActivitySigninBindin
 import com.sugara.submissionandroidintermediate.di.ResultState
 import com.sugara.submissionandroidintermediate.view.MainActivity
 import com.sugara.submissionandroidintermediate.view.ViewModelFactory
+import com.sugara.submissionandroidintermediate.view.addStory.AddStoryViewModel
 import com.sugara.submissionandroidintermediate.view.home.HomeActivity
 import com.sugara.submissionandroidintermediate.view.signup.SignupViewModel
 
 class SigninActivity : AppCompatActivity() {
 
-    private lateinit var signinViewModel: SigninViewModel
     private lateinit var binding: ActivitySigninBinding
     private lateinit var loadingDialog: android.app.AlertDialog
+
+
+    private val signinViewModel by viewModels<SigninViewModel> {
+        ViewModelFactory.getInstance(this)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySigninBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        signinViewModel = obtainViewModel(this)
 
         setupView()
         setupAction()
@@ -61,7 +65,7 @@ class SigninActivity : AppCompatActivity() {
                             AlertDialog.Builder(this).apply {
                                 setTitle("Yeah!")
                                 setMessage(result.data.message)
-                                signinViewModel.saveSession(result.data.loginResult as LoginResult)
+                                signinViewModel.saveSession(LoginResult(result.data.loginResult?.name,result.data.loginResult?.name,result.data.loginResult?.token.toString()))
                                 setPositiveButton("Lanjut") { _, _ ->
                                     val intent = Intent(context, MainActivity::class.java)
                                     intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
@@ -91,12 +95,6 @@ class SigninActivity : AppCompatActivity() {
         }
 
     }
-
-    private fun obtainViewModel(activity: AppCompatActivity): SigninViewModel {
-        val factory = ViewModelFactory.getInstance(activity.application)
-        return ViewModelProvider(activity, factory).get(SigninViewModel::class.java)
-    }
-
 
     private fun setupView() {
         @Suppress("DEPRECATION")
@@ -172,8 +170,10 @@ class SigninActivity : AppCompatActivity() {
                 val password = s.toString()
                 if (password.length < 8) {
                     binding.passwordEditTextLayout.error = "Password must be at least 8 characters"
+                    binding.loginButton.isEnabled = false
                 } else {
                     binding.passwordEditTextLayout.error = null
+                    binding.loginButton.isEnabled = true
                 }
             }
 

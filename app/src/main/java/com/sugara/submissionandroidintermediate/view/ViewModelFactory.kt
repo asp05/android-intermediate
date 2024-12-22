@@ -2,6 +2,7 @@ package com.sugara.submissionandroidintermediate.view
 
 import android.app.Application
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.sugara.submissionandroidintermediate.data.UserRepository
@@ -12,37 +13,38 @@ import com.sugara.submissionandroidintermediate.view.maps.MapsViewModel
 import com.sugara.submissionandroidintermediate.view.signin.SigninViewModel
 import com.sugara.submissionandroidintermediate.view.signup.SignupViewModel
 
-class ViewModelFactory private constructor(private val userRepository: UserRepository) : ViewModelProvider.NewInstanceFactory() {
-    companion object {
-        @Volatile
-        private var INSTANCE: ViewModelFactory? = null
-        @JvmStatic
-        fun getInstance(context: Context): ViewModelFactory {
-            if (INSTANCE == null) {
-                synchronized(ViewModelFactory::class.java) {
-                    INSTANCE = ViewModelFactory(Injection.provideRepository(context))
-                }
-            }
-            return INSTANCE as ViewModelFactory
-        }
-    }
+class ViewModelFactory(private val repository: UserRepository) : ViewModelProvider.NewInstanceFactory() {
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(SignupViewModel::class.java)) {
-            return SignupViewModel(userRepository) as T
-        } else if (modelClass.isAssignableFrom(SigninViewModel::class.java)) {
-            return SigninViewModel(userRepository) as T
-        }else if (modelClass.isAssignableFrom(HomeViewModel::class.java)) {
-            return HomeViewModel(userRepository) as T
-        }else if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
-            return MainViewModel(userRepository) as T
-        }else if (modelClass.isAssignableFrom(AddStoryViewModel::class.java)) {
-            return AddStoryViewModel(userRepository) as T
-        }else if (modelClass.isAssignableFrom(MapsViewModel::class.java)) {
-            return MapsViewModel(userRepository) as T
+        return when {
+            modelClass.isAssignableFrom(MainViewModel::class.java) -> {
+                MainViewModel(repository) as T
+            }
+            modelClass.isAssignableFrom(SigninViewModel::class.java) -> {
+                SigninViewModel(repository) as T
+            }
+            modelClass.isAssignableFrom(SignupViewModel::class.java) -> {
+                SignupViewModel(repository) as T
+            }
+            modelClass.isAssignableFrom(MapsViewModel::class.java) -> {
+                MapsViewModel(repository) as T
+            }
+            modelClass.isAssignableFrom(HomeViewModel::class.java) -> {
+                HomeViewModel(repository) as T
+            }
+            modelClass.isAssignableFrom(AddStoryViewModel::class.java) -> {
+                AddStoryViewModel(repository) as T
+            }
+            else -> throw IllegalArgumentException("Unknown ViewModel class: " + modelClass.name)
         }
+    }
 
-        throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
+    companion object {
+        @JvmStatic
+        fun getInstance(context: Context): ViewModelFactory {
+            Log.d("ViewModelFactory", "getInstance: ini memanggil instance injection")
+            return ViewModelFactory(Injection.provideRepository(context))
+        }
     }
 }
