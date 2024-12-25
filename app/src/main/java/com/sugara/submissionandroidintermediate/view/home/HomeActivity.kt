@@ -47,7 +47,9 @@ class HomeActivity : AppCompatActivity() {
 
         binding.ivLogout.setOnClickListener {
             homeViewModel.logout()
-            val intent = Intent(this, SigninActivity::class.java)
+            val intent = Intent(this, SigninActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
             startActivity(intent)
             finish()
 

@@ -11,12 +11,15 @@ import android.text.TextWatcher
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
+import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.ViewModelProvider
 import com.sugara.submissionandroidintermediate.R
 import com.sugara.submissionandroidintermediate.data.model.UserModel
 import com.sugara.submissionandroidintermediate.databinding.ActivitySignupBinding
 import com.sugara.submissionandroidintermediate.view.ViewModelFactory
+import com.sugara.submissionandroidintermediate.view.customView.CustomButton
+import com.sugara.submissionandroidintermediate.view.customView.CustomInputPassword
 import com.sugara.submissionandroidintermediate.view.signin.SigninActivity
 
 class SignupActivity : AppCompatActivity() {
@@ -25,6 +28,9 @@ class SignupActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySignupBinding
     private lateinit var loadingDialog: android.app.AlertDialog
     private lateinit var register: UserModel
+    private lateinit var txPasword: CustomInputPassword
+    private lateinit var txEmail: EditText
+    private lateinit var signUpButton: CustomButton
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySignupBinding.inflate(layoutInflater)
@@ -35,7 +41,38 @@ class SignupActivity : AppCompatActivity() {
         setupView()
         setupAction()
         playAnimation()
-        setupPasswordValidation()
+
+        signUpButton = findViewById(R.id.signupButton)
+        signUpButton.setButtonType(CustomButton.ButtonType.REGISTER)
+
+        txEmail = binding.emailEditText
+        txPasword = binding.passwordEditText
+
+        txEmail.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {
+            }
+
+            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
+                setMyButtonEnable()
+            }
+
+            override fun afterTextChanged(s: Editable) {
+
+            }
+        })
+
+        txPasword.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {
+            }
+
+            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
+                setMyButtonEnable()
+            }
+
+            override fun afterTextChanged(s: Editable) {
+
+            }
+        })
 
         binding.signupButton.setOnClickListener {
             val name = binding.nameEditText.text.toString()
@@ -65,13 +102,9 @@ class SignupActivity : AppCompatActivity() {
             //set text button register to spinner and disable button
             if (isLoading) {
                 showLoadingDialog()
-                binding.signupButton.text = "Loading..."
-                binding.signupButton.isEnabled = false
             } else {
                 //set text button register to register and enable button
                 dismissLoadingDialog()
-                binding.signupButton.text = "Register"
-                binding.signupButton.isEnabled = true
             }
         }
 
@@ -172,23 +205,11 @@ class SignupActivity : AppCompatActivity() {
 
 
 
-    private fun setupPasswordValidation() {
-        binding.passwordEditText.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                val password = s.toString()
-                if (password.length < 8) {
-                    binding.passwordEditTextLayout.error = "Password must be at least 8 characters"
-                    binding.signupButton.isEnabled = false
-                } else {
-                    binding.passwordEditTextLayout.error = null
-                    binding.signupButton.isEnabled = true
-                }
-            }
-
-            override fun afterTextChanged(s: Editable?) {}
-        })
+    private fun setMyButtonEnable() {
+        val resultEmail = txEmail.text
+        val resultPassword = txPasword.text
+        signUpButton.isEnabled = resultEmail != null && resultPassword != null && resultEmail.toString()
+            .isNotEmpty() && resultPassword.toString().isNotEmpty() && resultPassword.toString().length > 7
     }
 
     private fun showLoadingDialog() {

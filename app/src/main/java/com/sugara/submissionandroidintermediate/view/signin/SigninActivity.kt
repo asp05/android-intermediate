@@ -11,6 +11,7 @@ import android.text.TextWatcher
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
+import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.ViewModelProvider
 import com.sugara.submissionandroidintermediate.R
@@ -18,6 +19,8 @@ import com.sugara.submissionandroidintermediate.data.model.UserModel
 import com.sugara.submissionandroidintermediate.databinding.ActivitySigninBinding
 import com.sugara.submissionandroidintermediate.view.MainActivity
 import com.sugara.submissionandroidintermediate.view.ViewModelFactory
+import com.sugara.submissionandroidintermediate.view.customView.CustomButton
+import com.sugara.submissionandroidintermediate.view.customView.CustomInputPassword
 import com.sugara.submissionandroidintermediate.view.home.HomeActivity
 import com.sugara.submissionandroidintermediate.view.signup.SignupViewModel
 
@@ -27,6 +30,9 @@ class SigninActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySigninBinding
     private lateinit var loadingDialog: android.app.AlertDialog
     private lateinit var login: UserModel
+    private lateinit var txPasword: CustomInputPassword
+    private lateinit var txEmail: EditText
+    private lateinit var loginButton: CustomButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,8 +44,25 @@ class SigninActivity : AppCompatActivity() {
         setupView()
         setupAction()
         playAnimation()
-        setupPasswordValidation()
 
+        loginButton = findViewById(R.id.loginButton)
+        loginButton.setButtonType(CustomButton.ButtonType.LOGIN)
+
+        txEmail = binding.emailEditText
+        txPasword = binding.passwordEditText
+
+        txEmail.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {
+            }
+
+            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
+                setMyButtonEnable()
+            }
+
+            override fun afterTextChanged(s: Editable) {
+
+            }
+        })
 
         binding.loginButton.setOnClickListener {
             val email = binding.emailEditText.text.toString()
@@ -59,16 +82,25 @@ class SigninActivity : AppCompatActivity() {
 
         }
 
+        txPasword.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {
+            }
+
+            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
+                setMyButtonEnable()
+            }
+
+            override fun afterTextChanged(s: Editable) {
+
+            }
+        })
+
         signinViewModel.isLoading.observe(this) { isLoading ->
             if (isLoading) {
                 showLoadingDialog()
-                binding.loginButton.text = "Loading..."
-                binding.loginButton.isEnabled = false
             } else {
                 dismissLoadingDialog()
                 //set text button register to register and enable button
-                binding.loginButton.text = "Login"
-                binding.loginButton.isEnabled = true
             }
         }
 
@@ -114,6 +146,14 @@ class SigninActivity : AppCompatActivity() {
         supportActionBar?.hide()
     }
 
+    private fun setMyButtonEnable() {
+        val resultEmail = txEmail.text
+        val resultPassword = txPasword.text
+        loginButton.isEnabled = resultEmail != null && resultPassword != null && resultEmail.toString()
+            .isNotEmpty() && resultPassword.toString().isNotEmpty() && resultPassword.toString().length > 7
+    }
+
+
     private fun setupAction() {
         binding.loginButton.setOnClickListener {
             val email = binding.emailEditText.text.toString()
@@ -148,7 +188,7 @@ class SigninActivity : AppCompatActivity() {
             ObjectAnimator.ofFloat(binding.emailEditTextLayout, View.ALPHA, 1f).setDuration(100)
         val passwordTextView =
             ObjectAnimator.ofFloat(binding.passwordTextView, View.ALPHA, 1f).setDuration(100)
-        val passwordEditTextLayout =
+        val passwordTextLayout =
             ObjectAnimator.ofFloat(binding.passwordEditTextLayout, View.ALPHA, 1f).setDuration(100)
         val login = ObjectAnimator.ofFloat(binding.loginButton, View.ALPHA, 1f).setDuration(100)
 
@@ -159,32 +199,13 @@ class SigninActivity : AppCompatActivity() {
                 emailTextView,
                 emailEditTextLayout,
                 passwordTextView,
-                passwordEditTextLayout,
+                passwordTextLayout,
                 login
             )
             startDelay = 100
         }.start()
     }
 
-
-    private fun setupPasswordValidation() {
-        binding.passwordEditText.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                val password = s.toString()
-                if (password.length < 8) {
-                    binding.passwordEditTextLayout.error = "Password must be at least 8 characters"
-                    binding.loginButton.isEnabled = false
-                } else {
-                    binding.passwordEditTextLayout.error = null
-                    binding.loginButton.isEnabled = true
-                }
-            }
-
-            override fun afterTextChanged(s: Editable?) {}
-        })
-    }
 
     private fun showLoadingDialog() {
         val builder = android.app.AlertDialog.Builder(this)
